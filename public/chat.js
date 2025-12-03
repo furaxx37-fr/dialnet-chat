@@ -395,20 +395,20 @@ class DialNetChat {
     }
 
     toggleEmojiPicker() {
-        if (this.emojiPicker.style.display === 'none' || !this.emojiPicker.style.display) {
-            this.emojiPicker.style.display = 'block';
+        if (this.emojiPicker.classList.contains('hidden')) {
+            this.emojiPicker.classList.remove('hidden');
         } else {
-            this.emojiPicker.style.display = 'none';
+            this.emojiPicker.classList.add('hidden');
         }
     }
 
     handleEmojiClick(e) {
-        if (e.target.classList.contains('emoji')) {
-            const emoji = e.target.textContent;
+        if (e.target.classList.contains('emoji-btn')) {
+            const emoji = e.target.getAttribute('data-emoji');
             const currentValue = this.messageInput.value;
             this.messageInput.value = currentValue + emoji;
             this.messageInput.focus();
-            this.emojiPicker.style.display = 'none';
+            this.emojiPicker.classList.add('hidden');
         }
     }
     escapeHtml(text) {
