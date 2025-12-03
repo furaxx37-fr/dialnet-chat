@@ -20,13 +20,16 @@ app.use(express.json());
 
 // Stockage en mémoire
 const rooms = {
-  'general': { name: 'Général', users: [], messages: [] },
-  'musique': { name: 'Musique', users: [], messages: [] },
-  'jeux': { name: 'Jeux Vidéo', users: [], messages: [] },
-  'cinema': { name: 'Cinéma & Séries', users: [], messages: [] },
-  'tech': { name: 'Technologie', users: [], messages: [] },
-  'detente': { name: 'Détente', users: [], messages: [] }
+  'general': { name: 'Général', users: [], messages: [], type: 'public', password: null },
+  'musique': { name: 'Musique', users: [], messages: [], type: 'public', password: null },
+  'jeux': { name: 'Jeux Vidéo', users: [], messages: [], type: 'public', password: null },
+  'cinema': { name: 'Cinéma & Séries', users: [], messages: [], type: 'public', password: null },
+  'tech': { name: 'Technologie', users: [], messages: [], type: 'public', password: null },
+  'detente': { name: 'Détente', users: [], messages: [], type: 'public', password: null }
 };
+
+// Stockage des salons privés
+const privateRooms = new Map();
 
 const connectedUsers = new Map();
 
@@ -53,9 +56,48 @@ app.get('/api/rooms', (req, res) => {
   const roomsData = Object.keys(rooms).map(key => ({
     id: key,
     name: rooms[key].name,
-    userCount: rooms[key].users.length
+    userCount: rooms[key].users.length,
+    type: rooms[key].type
   }));
-  res.json(roomsData);
+  
+  // Ajouter les salons privés
+  const privateRoomsData = Array.from(privateRooms.entries()).map(([id, room]) => ({
+    id: id,
+    name: room.name,
+    userCount: room.users.length,
+    type: 'private'
+  }));
+  
+  res.json([...roomsData, ...privateRoomsData]);
+});
+
+// Route pour créer un salon privé
+app.post('/api/create-private-room', (req, res) => {
+  const { roomName, password, creatorName } = req.body;
+  
+  if (!roomName || !password || !creatorName) {
+    return res.status(400).json({ error: 'Nom du salon, mot de passe et nom du créateur requis' });
+  }
+  
+  // Générer un ID unique pour le salon
+  const roomId = 'private_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  
+  // Créer le salon privé
+  privateRooms.set(roomId, {
+    name: roomName,
+    password: password,
+    creator: creatorName,
+    users: [],
+    messages: [],
+    type: 'private',
+    createdAt: new Date()
+  });
+  
+  res.json({ 
+    success: true, 
+    roomId: roomId,
+    message: 'Salon privé créé avec succès' 
+  });
 });
 
 // Socket.IO
@@ -63,9 +105,27 @@ io.on('connection', (socket) => {
   console.log('Nouvel utilisateur connecté:', socket.id);
 
   socket.on('join-room', (data) => {
-    const { username, room, department, gender } = data;
+    const { username, room, department, gender, password } = data;
     
-    if (!rooms[room]) return;
+    // Vérifier si c'est un salon public ou privé
+    let targetRoom = null;
+    let isPrivateRoom = false;
+    
+    if (rooms[room]) {
+      targetRoom = rooms[room];
+    } else if (privateRooms.has(room)) {
+      targetRoom = privateRooms.get(room);
+      isPrivateRoom = true;
+      
+      // Vérifier le mot de passe pour les salons privés
+      if (targetRoom.password !== password) {
+        socket.emit('join-error', { message: 'Mot de passe incorrect' });
+        return;
+      }
+    } else {
+      socket.emit('join-error', { message: 'Salon introuvable' });
+      return;
+    }
 
     // Gérer les connexions multiples depuis la même IP
     const clientIP = socket.handshake.address;
@@ -115,20 +175,20 @@ io.on('connection', (socket) => {
     // Rejoindre le nouveau salon
     socket.join(room);
     const user = { id: socket.id, username, department, gender, joinedAt: new Date() };
-    rooms[room].users.push(user);
-    connectedUsers.set(socket.id, { username, room, department, gender });
+    targetRoom.users.push(user);
+    connectedUsers.set(socket.id, { username, room, department, gender, isPrivateRoom });
 
     // Envoyer les messages récents
-    socket.emit('room-messages', rooms[room].messages.slice(-50));
+    socket.emit('room-messages', targetRoom.messages.slice(-50));
     
     // Notifier les autres utilisateurs
     socket.to(room).emit('user-joined', {
       username,
-      userCount: rooms[room].users.length
+      userCount: targetRoom.users.length
     });
 
     // Envoyer la liste des utilisateurs
-    io.to(room).emit('users-list', rooms[room].users.map(u => u.username));
+    io.to(room).emit('users-list', targetRoom.users.map(u => u.username));
   });
 
   socket.on('send-message', (data) => {
@@ -136,6 +196,16 @@ io.on('connection', (socket) => {
 
     const user = connectedUsers.get(socket.id);
     const room = user.room;
+    
+    // Trouver le salon (public ou privé)
+    let targetRoom = null;
+    if (rooms[room]) {
+      targetRoom = rooms[room];
+    } else if (privateRooms.has(room)) {
+      targetRoom = privateRooms.get(room);
+    }
+    
+    if (!targetRoom) return;
     
     const message = {
       id: Date.now(),
@@ -145,11 +215,11 @@ io.on('connection', (socket) => {
       room: room
     };
 
-    rooms[room].messages.push(message);
+    targetRoom.messages.push(message);
     
     // Garder seulement les 100 derniers messages
-    if (rooms[room].messages.length > 100) {
-      rooms[room].messages = rooms[room].messages.slice(-100);
+    if (targetRoom.messages.length > 100) {
+      targetRoom.messages = targetRoom.messages.slice(-100);
     }
 
     io.to(room).emit('new-message', message);
@@ -160,14 +230,23 @@ io.on('connection', (socket) => {
       const user = connectedUsers.get(socket.id);
       const room = user.room;
       
-      rooms[room].users = rooms[room].users.filter(u => u.id !== socket.id);
-      
-      socket.to(room).emit('user-left', {
-        username: user.username,
-        userCount: rooms[room].users.length
-      });
+      // Vérifier si le salon existe encore
+      if (rooms[room]) {
+        rooms[room].users = rooms[room].users.filter(u => u.id !== socket.id);
+        
+        socket.to(room).emit('user-left', {
+          username: user.username,
+          userCount: rooms[room].users.length
+        });
 
-      io.to(room).emit('users-list', rooms[room].users.map(u => u.username));
+        io.to(room).emit('users-list', rooms[room].users.map(u => u.username));
+        
+        // Supprimer les salons privés vides
+        if (rooms[room].type === 'private' && rooms[room].users.length === 0) {
+          delete rooms[room];
+          console.log(`Salon privé ${room} supprimé car vide`);
+        }
+      }
       
       connectedUsers.delete(socket.id);
       
