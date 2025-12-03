@@ -70,7 +70,7 @@ class DialNetChat {
         // Click outside to close emoji picker
         document.addEventListener('click', (e) => {
             if (!this.emojiBtn.contains(e.target) && !this.emojiPicker.contains(e.target)) {
-                this.emojiPicker.style.display = 'none';
+                this.emojiPicker.classList.add('hidden');
             }
         });
     }
