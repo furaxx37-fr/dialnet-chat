@@ -1,0 +1,286 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Logo animations */
+.dialnet-logo {
+    position: relative;
+    display: inline-block;
+}
+
+.dialnet-logo-large {
+    position: relative;
+    display: inline-block;
+}
+
+.logo-pulse, .logo-pulse-large {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.logo-pulse-large {
+    width: 120%;
+    height: 120%;
+}
+
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 1;
+    }
+}
+
+/* Netflix-style scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ef4444;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #dc2626;
+}
+
+/* Custom animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Message animations */
+.message {
+    animation: slideInUp 0.3s ease-out;
+}
+
+.message-own {
+    animation: slideInRight 0.3s ease-out;
+}
+
+/* User list animations */
+.user-item {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Notification styles */
+.notification {
+    animation: slideInRight 0.3s ease-out;
+    transition: all 0.3s ease;
+}
+
+.notification.removing {
+    animation: slideOutRight 0.3s ease-out;
+}
+
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+/* Hover effects */
+.hover-glow:hover {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    transition: box-shadow 0.3s ease;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    #chat-screen {
+        flex-direction: column;
+    }
+    
+    #chat-screen .w-80 {
+        width: 100%;
+        max-height: 200px;
+    }
+    
+    .dialnet-logo span {
+        font-size: 1.5rem;
+    }
+    
+    .dialnet-logo-large span {
+        font-size: 2.5rem;
+    }
+}
+
+/* Message bubble styles */
+.message-bubble {
+    max-width: 80%;
+    word-wrap: break-word;
+    position: relative;
+}
+
+.message-bubble.own {
+    margin-left: auto;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.message-bubble.other {
+    background: #374151;
+}
+
+/* Typing indicator */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    space-x-1;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Status indicators */
+.status-online {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.status-away {
+    width: 8px;
+    height: 8px;
+    background: #f59e0b;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #374151;
+    border-radius: 50%;
+    border-top-color: #ef4444;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Focus states */
+input:focus, select:focus, button:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #ef4444;
+    ring-opacity: 50%;
+}
+
+/* Gradient backgrounds */
+.bg-netflix-gradient {
+    background: linear-gradient(135deg, #000000 0%, #434343 100%);
+}
+
+.bg-red-gradient {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Text effects */
+.text-glow {
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+/* Button hover effects */
+.btn-netflix {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    transition: all 0.3s ease;
+    transform: translateY(0);
+}
+
+.btn-netflix:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+}
+
+/* Card effects */
+.card-netflix {
+    background: rgba(17, 24, 39, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.card-netflix:hover {
+    border-color: rgba(239, 68, 68, 0.4);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
