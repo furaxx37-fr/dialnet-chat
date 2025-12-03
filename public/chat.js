@@ -198,6 +198,12 @@ class DialNetChat {
             this.updateUsersList(users);
         });
         
+        this.socket.on('join-error', (error) => {
+            console.error('Erreur de connexion au salon:', error);
+            this.showNotification(error.message || 'Erreur lors de la connexion au salon', 'error');
+            this.isConnected = false;
+        });
+
         this.socket.on('connect_error', (error) => {
             console.error('Erreur de connexion:', error);
             this.showNotification('Erreur de connexion au serveur', 'error');
