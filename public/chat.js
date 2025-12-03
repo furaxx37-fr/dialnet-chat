@@ -8,6 +8,7 @@ class DialNetChat {
         
         this.initializeElements();
         this.attachEventListeners();
+        this.setupPrivateRoomListeners();
         this.loadRooms();
     }
 
@@ -176,7 +177,7 @@ class DialNetChat {
             this.scrollToBottom();
             
             // Play sound notification for new messages
-            if (message.username !== this.username) {
+            if (message.username !== this.currentUser) {
                 this.playSound('message');
             }
         });
@@ -410,6 +411,114 @@ class DialNetChat {
             this.messageInput.focus();
             this.emojiPicker.classList.add('hidden');
         }
+        }
+    }
+
+    // Méthodes pour les salons privés
+    setupPrivateRoomListeners() {
+        const createBtn = document.getElementById('create-private-room-btn');
+        const joinBtn = document.getElementById('join-private-room-btn');
+        const createModal = document.getElementById('create-room-modal');
+        const joinModal = document.getElementById('join-room-modal');
+        const createForm = document.getElementById('create-room-form');
+        const joinForm = document.getElementById('join-room-form');
+        const cancelCreate = document.getElementById('cancel-create-room');
+        const cancelJoin = document.getElementById('cancel-join-room');
+
+        createBtn.addEventListener('click', () => {
+            createModal.classList.remove('hidden');
+        });
+
+        joinBtn.addEventListener('click', () => {
+            joinModal.classList.remove('hidden');
+        });
+
+        cancelCreate.addEventListener('click', () => {
+            createModal.classList.add('hidden');
+            createForm.reset();
+        });
+
+        cancelJoin.addEventListener('click', () => {
+            joinModal.classList.add('hidden');
+            joinForm.reset();
+        });
+
+        createForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleCreatePrivateRoom();
+        });
+
+        joinForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleJoinPrivateRoom();
+        });
+    }
+
+    handleCreatePrivateRoom() {
+        const roomName = document.getElementById('room-name').value.trim();
+        const password = document.getElementById('room-password').value;
+
+        if (!roomName || !password) {
+            this.showNotification('Veuillez remplir tous les champs', 'error');
+            return;
+        }
+
+        fetch('/api/create-private-room', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                roomName: roomName,
+                password: password,
+                creatorName: this.currentUser
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                this.showNotification('Salon privé créé avec succès!', 'success');
+                document.getElementById('create-room-modal').classList.add('hidden');
+                document.getElementById('create-room-form').reset();
+                // Rejoindre automatiquement le salon créé
+                this.joinRoom(roomName, password);
+            } else {
+                this.showNotification(data.message || 'Erreur lors de la création du salon', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            this.showNotification('Erreur de connexion', 'error');
+        });
+    }
+
+    handleJoinPrivateRoom() {
+        const roomName = document.getElementById('join-room-name').value.trim();
+        const password = document.getElementById('join-room-password').value;
+
+        if (!roomName || !password) {
+            this.showNotification('Veuillez remplir tous les champs', 'error');
+            return;
+        }
+
+        this.joinRoom(roomName, password);
+        document.getElementById('join-room-modal').classList.add('hidden');
+        document.getElementById('join-room-form').reset();
+    }
+
+    joinRoom(roomName, password = null) {
+        const userData = {
+            username: this.currentUser,
+            department: this.currentDepartment,
+            gender: this.currentGender,
+            room: roomName
+        };
+
+        if (password) {
+            userData.password = password;
+        }
+
+        this.socket.emit('join-room', userData);
     }
     escapeHtml(text) {
         const div = document.createElement('div');
