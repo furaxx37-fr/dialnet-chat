@@ -71,6 +71,27 @@ app.get('/api/rooms', (req, res) => {
   res.json([...roomsData, ...privateRoomsData]);
 });
 
+// Route pour la connexion utilisateur
+app.post('/api/login', (req, res) => {
+  const { username, department, gender } = req.body;
+  
+  if (!username || !department || !gender) {
+    return res.status(400).json({ error: 'Nom d\'utilisateur, département et sexe requis' });
+  }
+  
+  // Valider les données
+  if (username.length < 2 || username.length > 20) {
+    return res.status(400).json({ error: 'Le nom d\'utilisateur doit contenir entre 2 et 20 caractères' });
+  }
+  
+  // Retourner succès
+  res.json({ 
+    success: true, 
+    message: 'Connexion réussie',
+    user: { username, department, gender }
+  });
+});
+
 // Route pour créer un salon privé
 app.post('/api/create-private-room', (req, res) => {
   const { roomName, password, creatorName } = req.body;
