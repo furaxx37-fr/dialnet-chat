@@ -261,7 +261,8 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 DialNet server running on port ${PORT}`);
   console.log(`📱 Access: http://localhost:${PORT}`);
+  console.log(`🌐 Public Access: http://$(curl -s ifconfig.me):${PORT}`);
 });
