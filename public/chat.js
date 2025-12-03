@@ -36,7 +36,7 @@ class DialNetChat {
         this.notificationsContainer = document.getElementById('notifications');
         
         // Emoji and sound elements
-        this.emojiBtn = document.getElementById('emoji-btn');
+        this.emojiBtn = document.getElementById('emoji-toggle');
         this.emojiPicker = document.getElementById('emoji-picker');
         this.soundEnabled = localStorage.getItem('dialnet-sound-enabled') !== 'false';
         
