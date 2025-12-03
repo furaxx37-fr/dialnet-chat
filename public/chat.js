@@ -121,6 +121,18 @@ class DialNetChat {
         
         const username = this.usernameInput.value.trim();
         const room = this.roomSelect.value;
+        const department = document.getElementById('department').value;
+        const gender = document.querySelector('input[name="gender"]:checked')?.value;
+        
+        if (!department) {
+            this.showNotification('Veuillez sélectionner votre département', 'error');
+            return;
+        }
+        
+        if (!gender) {
+            this.showNotification('Veuillez sélectionner votre sexe', 'error');
+            return;
+        }
         
         if (!username || username.length < 2) {
             this.showNotification('Le pseudonyme doit contenir au moins 2 caractères', 'error');
@@ -134,6 +146,8 @@ class DialNetChat {
         
         this.currentUser = username;
         this.currentRoom = room;
+        this.currentDepartment = department;
+        this.currentGender = gender;
         
         this.connectToServer();
     }
@@ -192,7 +206,9 @@ class DialNetChat {
     joinRoom() {
         this.socket.emit('join-room', {
             username: this.currentUser,
-            room: this.currentRoom
+            room: this.currentRoom,
+            department: this.currentDepartment,
+            gender: this.currentGender
         });
         
         this.showChatScreen();
@@ -376,6 +392,24 @@ class DialNetChat {
             '<i class="fas fa-volume-up"></i>' : 
             '<i class="fas fa-volume-mute"></i>';
         this.soundToggleBtn.title = this.soundEnabled ? 'Désactiver le son' : 'Activer le son';
+    }
+
+    toggleEmojiPicker() {
+        if (this.emojiPicker.style.display === 'none' || !this.emojiPicker.style.display) {
+            this.emojiPicker.style.display = 'block';
+        } else {
+            this.emojiPicker.style.display = 'none';
+        }
+    }
+
+    handleEmojiClick(e) {
+        if (e.target.classList.contains('emoji')) {
+            const emoji = e.target.textContent;
+            const currentValue = this.messageInput.value;
+            this.messageInput.value = currentValue + emoji;
+            this.messageInput.focus();
+            this.emojiPicker.style.display = 'none';
+        }
     }
     escapeHtml(text) {
         const div = document.createElement('div');
