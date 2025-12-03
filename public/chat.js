@@ -4,6 +4,7 @@ class DialNetChat {
         this.currentUser = null;
         this.currentRoom = null;
         this.isConnected = false;
+        this.soundEnabled = localStorage.getItem('dialnet-sound-enabled') !== 'false';
         
         this.initializeElements();
         this.attachEventListeners();
@@ -30,8 +31,21 @@ class DialNetChat {
         this.currentUsernameElement = document.getElementById('current-username');
         this.userInfoElement = document.getElementById('user-info');
         this.disconnectBtn = document.getElementById('disconnect-btn');
+        this.soundToggleBtn = document.getElementById('sound-toggle-btn');
         this.changeRoomBtn = document.getElementById('change-room-btn');
         this.notificationsContainer = document.getElementById('notifications');
+        
+        // Emoji and sound elements
+        this.emojiBtn = document.getElementById('emoji-btn');
+        this.emojiPicker = document.getElementById('emoji-picker');
+        this.soundEnabled = localStorage.getItem('dialnet-sound-enabled') !== 'false';
+        
+        // Initialize sound button state
+        this.updateSoundButtonState();
+        this.sounds = {
+            message: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDuO2fPFdSYELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDuO2fPFdSYELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDuO2fPFdSYELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDuO2fPFdSYE'),
+            notification: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDuO2fPFdSYELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDuO2fPFdSYELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDuO2fPFdSYELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDuO2fPFdSYE')
+        };
     }
 
     attachEventListeners() {
@@ -39,6 +53,7 @@ class DialNetChat {
         this.messageForm.addEventListener('submit', (e) => this.handleSendMessage(e));
         this.disconnectBtn.addEventListener('click', () => this.handleDisconnect());
         this.changeRoomBtn.addEventListener('click', () => this.handleChangeRoom());
+        this.soundToggleBtn.addEventListener('click', () => this.toggleSound());
         
         // Auto-scroll to bottom when typing
         this.messageInput.addEventListener('input', () => this.scrollToBottom());
@@ -46,6 +61,17 @@ class DialNetChat {
         // Enter key handling
         this.usernameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.loginForm.dispatchEvent(new Event('submit'));
+        });
+        
+        // Emoji picker events
+        this.emojiBtn.addEventListener('click', () => this.toggleEmojiPicker());
+        this.emojiPicker.addEventListener('click', (e) => this.handleEmojiClick(e));
+        
+        // Click outside to close emoji picker
+        document.addEventListener('click', (e) => {
+            if (!this.emojiBtn.contains(e.target) && !this.emojiPicker.contains(e.target)) {
+                this.emojiPicker.style.display = 'none';
+            }
         });
     }
 
@@ -134,16 +160,23 @@ class DialNetChat {
         this.socket.on('new-message', (message) => {
             this.displayMessage(message);
             this.scrollToBottom();
+            
+            // Play sound notification for new messages
+            if (message.username !== this.username) {
+                this.playSound('message');
+            }
         });
         
         this.socket.on('user-joined', (data) => {
             this.showNotification(`${data.username} a rejoint le salon`, 'info');
             this.updateUserCount(data.userCount);
+            this.playSound('notification');
         });
         
         this.socket.on('user-left', (data) => {
             this.showNotification(`${data.username} a quitté le salon`, 'info');
             this.updateUserCount(data.userCount);
+            this.playSound('notification');
         });
         
         this.socket.on('users-list', (users) => {
@@ -299,6 +332,51 @@ class DialNetChat {
         }, 100);
     }
 
+
+    toggleSound() {
+        this.soundEnabled = !this.soundEnabled;
+        this.updateSoundButtonState();
+        
+        // Save preference to localStorage
+        localStorage.setItem('dialnet-sound-enabled', this.soundEnabled);
+    }
+
+    playSound(type) {
+        if (!this.soundEnabled) return;
+        
+        // Create audio context for web audio API
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        // Simple beep sound generation
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        // Different frequencies for different notification types
+        if (type === 'message') {
+            oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+        } else {
+            oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime);
+        }
+        
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+        
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + 0.3);
+    }
+
+    updateSoundButtonState() {
+        this.soundToggleBtn.innerHTML = this.soundEnabled ? 
+            '<i class="fas fa-volume-up"></i>' : 
+            '<i class="fas fa-volume-mute"></i>';
+        this.soundToggleBtn.title = this.soundEnabled ? 'Désactiver le son' : 'Activer le son';
+    }
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;

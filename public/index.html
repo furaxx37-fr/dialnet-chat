@@ -23,6 +23,9 @@
                 <div id="user-info" class="hidden bg-red-700 px-4 py-2 rounded-full">
                     <span id="current-username" class="font-medium"></span>
                 </div>
+                <button id="sound-toggle-btn" class="hidden bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors" title="Activer/Désactiver les sons">
+                    🔊
+                </button>
                 <button id="disconnect-btn" class="hidden bg-red-900 hover:bg-red-800 px-4 py-2 rounded-lg transition-colors">
                     Déconnexion
                 </button>
@@ -120,20 +123,54 @@
             
             <!-- Message input -->
             <div class="p-4 bg-gray-900 border-t border-gray-800">
+                <!-- Emoji picker -->
+                <div id="emoji-picker" class="hidden mb-3 p-3 bg-gray-800 rounded-lg border border-gray-700">
+                    <div class="grid grid-cols-8 gap-2 text-2xl">
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="😀">😀</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="😂">😂</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="😍">😍</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="🥰">🥰</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="😎">😎</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="🤔">🤔</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="😴">😴</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="🎉">🎉</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="❤️">❤️</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="👍">👍</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="👎">👎</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="🔥">🔥</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="💯">💯</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="⚡">⚡</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="🌟">🌟</button>
+                        <button class="emoji-btn hover:bg-gray-700 p-2 rounded" data-emoji="🎵">🎵</button>
+                    </div>
+                </div>
+                
                 <form id="message-form" class="flex space-x-3">
-                    <input 
-                        type="text" 
-                        id="message-input" 
-                        class="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-gray-400"
-                        placeholder="Tapez votre message..."
-                        maxlength="500"
-                        autocomplete="off"
-                    >
+                    <div class="flex-1 relative">
+                        <input 
+                            type="text" 
+                            id="message-input" 
+                            class="w-full px-4 py-3 pr-12 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-gray-400"
+                            placeholder="Tapez votre message..."
+                            maxlength="500"
+                            autocomplete="off"
+                        >
+                        <button 
+                            type="button" 
+                            id="emoji-toggle" 
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors text-xl"
+                        >
+                            😊
+                        </button>
+                    </div>
                     <button 
                         type="submit" 
                         class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
                     >
                         Envoyer
+                    </button>
+                </form>
+            </div>
                     </button>
                 </form>
             </div>
