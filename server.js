@@ -63,7 +63,7 @@ io.on('connection', (socket) => {
   console.log('Nouvel utilisateur connecté:', socket.id);
 
   socket.on('join-room', (data) => {
-    const { username, room } = data;
+    const { username, room, department, gender } = data;
     
     if (!rooms[room]) return;
 
@@ -114,9 +114,9 @@ io.on('connection', (socket) => {
 
     // Rejoindre le nouveau salon
     socket.join(room);
-    const user = { id: socket.id, username, joinedAt: new Date() };
+    const user = { id: socket.id, username, department, gender, joinedAt: new Date() };
     rooms[room].users.push(user);
-    connectedUsers.set(socket.id, { username, room });
+    connectedUsers.set(socket.id, { username, room, department, gender });
 
     // Envoyer les messages récents
     socket.emit('room-messages', rooms[room].messages.slice(-50));
