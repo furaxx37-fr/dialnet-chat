@@ -30,6 +30,8 @@ const rooms = {
 
 const connectedUsers = new Map();
 
+const connectedIPs = new Map(); // Suivi des adresses IP pour éviter les connexions multiples
+
 // Mots interdits pour la modération
 const bannedWords = ['spam', 'hack', 'admin'];
 
@@ -64,6 +66,40 @@ io.on('connection', (socket) => {
     const { username, room } = data;
     
     if (!rooms[room]) return;
+
+    // Gérer les connexions multiples depuis la même IP
+    const clientIP = socket.handshake.address;
+    if (connectedIPs.has(clientIP)) {
+      const oldSocketId = connectedIPs.get(clientIP);
+      const oldSocket = io.sockets.sockets.get(oldSocketId);
+      
+      if (oldSocket && connectedUsers.has(oldSocketId)) {
+        const oldUserData = connectedUsers.get(oldSocketId);
+        const oldRoom = oldUserData.room;
+        
+        // Supprimer l'ancien utilisateur de la room
+        if (rooms[oldRoom]) {
+          rooms[oldRoom].users = rooms[oldRoom].users.filter(u => u.id !== oldSocketId);
+          
+          // Notifier les autres utilisateurs de la déconnexion
+          oldSocket.to(oldRoom).emit('user-left', {
+            username: oldUserData.username,
+            userCount: rooms[oldRoom].users.length
+          });
+          
+          // Mettre à jour la liste des utilisateurs
+          io.to(oldRoom).emit('users-list', rooms[oldRoom].users.map(u => u.username));
+        }
+        
+        // Supprimer l'ancien utilisateur des maps
+        connectedUsers.delete(oldSocketId);
+        oldSocket.disconnect(true);
+      }
+    }
+    
+    // Enregistrer la nouvelle connexion IP
+    connectedIPs.set(clientIP, socket.id);
+
 
     // Quitter l'ancien salon si nécessaire
     if (connectedUsers.has(socket.id)) {
@@ -134,6 +170,12 @@ io.on('connection', (socket) => {
       io.to(room).emit('users-list', rooms[room].users.map(u => u.username));
       
       connectedUsers.delete(socket.id);
+      
+      // Nettoyer la Map des IP
+      const clientIP = socket.handshake.address;
+      if (connectedIPs.has(clientIP) && connectedIPs.get(clientIP) === socket.id) {
+        connectedIPs.delete(clientIP);
+      }
     }
     console.log('Utilisateur déconnecté:', socket.id);
   });
