@@ -417,7 +417,6 @@ class DialNetChat {
             this.messageInput.focus();
             this.emojiPicker.classList.add('hidden');
         }
-        }
     }
 
     // Méthodes pour les salons privés
