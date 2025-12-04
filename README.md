@@ -1,6 +1,6 @@
 # DialNet - Chat en ligne
 
-DialNet est une application de chat en ligne inspirée de coco.fr avec un design moderne inspiré de Netflix.
+DialNet est une Netflix de chat en ligne avec un design moderne inspiré de Netflix.
 
 ## 🚀 Fonctionnalités
 
@@ -62,4 +62,4 @@ Ce projet est sous licence MIT.
 
 ---
 
-**DialNet** - Recréation moderne du célèbre chat coco.fr 🚀
+**DialNet** -  🚀
