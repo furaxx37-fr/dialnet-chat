@@ -1,6 +1,6 @@
 # DialNet - Chat en ligne
 
-DialNet est une Netflix de chat en ligne avec un design moderne inspiré de Netflix.
+DialNet est un tchat en ligne avec un design moderne inspiré de Netflix.
 
 ## 🚀 Fonctionnalités
 
